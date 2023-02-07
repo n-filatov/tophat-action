@@ -1,4 +1,7 @@
-import { getPullRequestFilesChanged } from "../githubApi";
+import {
+  getPullRequestFilesChanged,
+  postCommentInPullRequest,
+} from "../githubApi";
 import { listFilesMockResponse } from "./fixtures";
 
 jest.mock("@actions/github", () => ({
@@ -12,19 +15,19 @@ describe("githubApi", () => {
   const listFilesMock = jest
     .fn()
     .mockResolvedValue({ data: listFilesMockResponse });
+  const createCommentMock = jest.fn();
+
   beforeEach(() => {
     getOctokitMock.mockReturnValue({
       rest: {
+        issues: {
+          createComment: createCommentMock,
+        },
         pulls: {
           listFiles: listFilesMock,
         },
       },
     });
-  });
-
-  afterEach(() => {
-    getOctokitMock.mockClear();
-    listFilesMock.mockClear();
   });
 
   describe("getPullRequestFilesChanged", () => {
@@ -61,6 +64,24 @@ describe("githubApi", () => {
       });
 
       expect(result).toEqual(["file0", "file1", "file2"]);
+    });
+  });
+
+  describe("postCommentInPullRequest", () => {
+    it("calls octokit with correct params", async () => {
+      const owner = "owner";
+      const repo = "repo";
+      const pullNumber = 1;
+      const body = "body";
+
+      await postCommentInPullRequest({ owner, repo, pullNumber, body });
+
+      expect(createCommentMock).toHaveBeenCalledWith({
+        owner,
+        repo,
+        issue_number: pullNumber,
+        body,
+      });
     });
   });
 });

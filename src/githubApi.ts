@@ -2,6 +2,11 @@ import { getOctokit } from "@actions/github";
 import invariant from "invariant";
 import { GITHUB_TOKEN } from "./constants";
 
+const getOctokitInstance = () => {
+  invariant(typeof GITHUB_TOKEN === "string", "GITHUB_TOKEN is required");
+  return getOctokit(GITHUB_TOKEN);
+};
+
 export async function getPullRequestFilesChanged({
   owner,
   repo,
@@ -11,10 +16,7 @@ export async function getPullRequestFilesChanged({
   repo: string;
   pullNumber: number;
 }) {
-  invariant(typeof GITHUB_TOKEN === "string", "GITHUB_TOKEN is required");
-
-  const octokit = getOctokit(GITHUB_TOKEN);
-
+  const octokit = getOctokitInstance();
   const result = await octokit.rest.pulls.listFiles({
     owner,
     repo,
@@ -23,4 +25,24 @@ export async function getPullRequestFilesChanged({
   const data = result.data;
 
   return data.map((file) => file.filename);
+}
+
+export async function postCommentInPullRequest({
+  owner,
+  repo,
+  pullNumber,
+  body,
+}: {
+  owner: string;
+  repo: string;
+  pullNumber: number;
+  body: string;
+}) {
+  const octokit = getOctokitInstance();
+  return await octokit.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number: pullNumber,
+    body,
+  });
 }
