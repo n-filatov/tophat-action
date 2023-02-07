@@ -1,0 +1,5 @@
+name: 'Get tophat instructions'
+description: 'Get tophat instructions'
+runs:
+  using: 'node12'
+  main: 'index.js'
