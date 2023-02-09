@@ -1,35 +1,27 @@
-import {
-  getPullRequestFilesChanged,
-  postCommentInPullRequest,
-} from "../githubApi";
+import { GithubApi } from "../githubApi";
 import { listFilesMockResponse } from "./fixtures";
 
-jest.mock("@actions/github", () => ({
-  ...jest.requireActual("@actions/github"),
-  getOctokit: jest.fn(),
-}));
+const getOctokitMock = jest.fn();
+const listFilesMock = jest
+  .fn()
+  .mockResolvedValue({ data: listFilesMockResponse });
+const createCommentMock = jest.fn();
 
-const getOctokitMock = jest.requireMock("@actions/github").getOctokit;
+getOctokitMock.mockReturnValue({
+  rest: {
+    issues: {
+      createComment: createCommentMock,
+    },
+    pulls: {
+      listFiles: listFilesMock,
+    },
+  },
+});
+
+const githubService = new GithubApi({ octokit: getOctokitMock() });
+const { getPullRequestFilesChanged, postCommentInPullRequest } = githubService;
 
 describe("githubApi", () => {
-  const listFilesMock = jest
-    .fn()
-    .mockResolvedValue({ data: listFilesMockResponse });
-  const createCommentMock = jest.fn();
-
-  beforeEach(() => {
-    getOctokitMock.mockReturnValue({
-      rest: {
-        issues: {
-          createComment: createCommentMock,
-        },
-        pulls: {
-          listFiles: listFilesMock,
-        },
-      },
-    });
-  });
-
   describe("getPullRequestFilesChanged", () => {
     it("calls octokit with correct params", async () => {
       const owner = "owner";
@@ -54,6 +46,7 @@ describe("githubApi", () => {
         data: listFilesMockResponse.slice(0, 3).map((fixture, index) => ({
           ...fixture,
           filename: "file" + index,
+          contents_url: "contents_url" + index,
         })),
       });
 
@@ -63,7 +56,11 @@ describe("githubApi", () => {
         pullNumber,
       });
 
-      expect(result).toEqual(["file0", "file1", "file2"]);
+      expect(result).toEqual([
+        { filename: "file0", contentsUrl: "contents_url0" },
+        { filename: "file1", contentsUrl: "contents_url1" },
+        { filename: "file2", contentsUrl: "contents_url2" },
+      ]);
     });
   });
 

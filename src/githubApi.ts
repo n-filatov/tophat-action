@@ -1,48 +1,60 @@
 import { getOctokit } from "@actions/github";
-import invariant from "invariant";
-import { GITHUB_TOKEN } from "./constants";
 
-const getOctokitInstance = () => {
-  invariant(typeof GITHUB_TOKEN === "string", "GITHUB_TOKEN is required");
-  return getOctokit(GITHUB_TOKEN);
+type File = {
+  filename: string;
+  contentsUrl: string;
 };
 
-export async function getPullRequestFilesChanged({
-  owner,
-  repo,
-  pullNumber,
-}: {
-  owner: string;
-  repo: string;
-  pullNumber: number;
-}) {
-  const octokit = getOctokitInstance();
-  const result = await octokit.rest.pulls.listFiles({
+export class GithubApi {
+  octokit: ReturnType<typeof getOctokit>;
+
+  constructor({ octokit }: { octokit: ReturnType<typeof getOctokit> }) {
+    this.octokit = octokit;
+  }
+
+  public getPullRequestFilesChanged = async ({
     owner,
     repo,
-    pull_number: pullNumber,
-  });
-  const data = result.data;
+    pullNumber,
+  }: {
+    owner: string;
+    repo: string;
+    pullNumber: number;
+  }): Promise<File[]> => {
+    const result = await this.octokit.rest.pulls.listFiles({
+      owner,
+      repo,
+      pull_number: pullNumber,
+    });
+    const data = result.data;
 
-  return data.map((file) => file.filename);
-}
+    return data.map((file) => ({
+      filename: file.filename,
+      contentsUrl: file.contents_url,
+    }));
+  };
 
-export async function postCommentInPullRequest({
-  owner,
-  repo,
-  pullNumber,
-  body,
-}: {
-  owner: string;
-  repo: string;
-  pullNumber: number;
-  body: string;
-}) {
-  const octokit = getOctokitInstance();
-  return await octokit.rest.issues.createComment({
+  public postCommentInPullRequest = async ({
     owner,
     repo,
-    issue_number: pullNumber,
+    pullNumber,
     body,
-  });
+  }: {
+    owner: string;
+    repo: string;
+    pullNumber: number;
+    body: string;
+  }) => {
+    return await this.octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: pullNumber,
+      body,
+    });
+  };
+
+  public getContent = async (contentsUrl: string) => {
+    const result = await this.octokit.request(`GET ${contentsUrl}`);
+    return Buffer.from(result.data.content, "base64").toString();
+  };
 }
