@@ -74,7 +74,8 @@ async function run({
 
   const [owner, repo] = repository.split("/");
 
-  console.log({
+  run({
+    token,
     owner,
     repo,
     pullNumber: pullRequestNumber,

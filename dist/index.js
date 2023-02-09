@@ -9768,7 +9768,8 @@ function run({ token, owner, repo, pullNumber, }) {
     (0, invariant_1.default)(typeof pullRequestNumber === "number", "pull_request.number is not defined");
     const token = (0, core_1.getInput)("github-token", { required: true });
     const [owner, repo] = repository.split("/");
-    console.log({
+    run({
+        token,
         owner,
         repo,
         pullNumber: pullRequestNumber,
