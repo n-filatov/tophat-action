@@ -1,5 +1,9 @@
 name: "Get tophat instructions"
 description: "Get tophat instructions"
+inputs:
+  github-token:
+    description: "GitHub token"
+    required: true
 runs:
   using: "node12"
   main: "dist/index.js"

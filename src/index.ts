@@ -1,16 +1,23 @@
 import { getOctokit } from "@actions/github";
+import core from "@actions/core";
 import invariant from "invariant";
-import { GITHUB_TOKEN } from "./constants";
 import { GithubApi } from "./githubApi";
+import fs from "fs";
 
-async function run(token: string) {
+async function run({
+  token,
+  owner,
+  repo,
+  pullNumber,
+}: {
+  token: string;
+  owner: string;
+  repo: string;
+  pullNumber: number;
+}) {
   const githubService = new GithubApi({
     octokit: getOctokit(token),
   });
-
-  const owner = "n-filatov";
-  const repo = "lexical-trainer";
-  const pullNumber = 3;
 
   const files = await githubService.getPullRequestFilesChanged({
     owner,
@@ -48,5 +55,28 @@ async function run(token: string) {
 }
 
 (() => {
-  console.log(JSON.stringify(process.env, null, 2));
+  const repository = process.env.GITHUB_REPOSITORY;
+  invariant(repository, "GITHUB_REPOSITORY_OWNER is not defined");
+  const githubEventPath = process.env.GITHUB_EVENT_PATH;
+
+  invariant(githubEventPath, "GITHUB_EVENT_PATH is not defined");
+
+  const event = JSON.parse(fs.readFileSync(githubEventPath, "utf8"));
+
+  const pullRequestNumber = event.pull_request.number;
+
+  invariant(
+    typeof pullRequestNumber === "number",
+    "pull_request.number is not defined"
+  );
+
+  const token = core.getInput("github-token", { required: true });
+
+  const [owner, repo] = repository.split("/");
+
+  console.log({
+    owner,
+    repo,
+    pullNumber: pullRequestNumber,
+  });
 })();
