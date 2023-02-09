@@ -6,7 +6,7 @@
     "test": "jest",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
-    "build": "ncc build src/index.ts -o dist"
+    "build": "rm -rf dist && ncc build src/index.ts -o dist"
   },
   "repository": {
     "type": "git",

@@ -1,8 +1,8 @@
 import { getOctokit } from "@actions/github";
-import core from "@actions/core";
 import invariant from "invariant";
 import { GithubApi } from "./githubApi";
 import fs from "fs";
+import { getInput } from "@actions/core";
 
 async function run({
   token,
@@ -70,7 +70,7 @@ async function run({
     "pull_request.number is not defined"
   );
 
-  const token = core.getInput("github-token", { required: true });
+  const token = getInput("github-token", { required: true });
 
   const [owner, repo] = repository.split("/");
 

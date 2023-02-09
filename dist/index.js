@@ -9725,10 +9725,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github_1 = __nccwpck_require__(5438);
-const core_1 = __importDefault(__nccwpck_require__(2186));
 const invariant_1 = __importDefault(__nccwpck_require__(6799));
 const githubApi_1 = __nccwpck_require__(6785);
 const fs_1 = __importDefault(__nccwpck_require__(7147));
+const core_1 = __nccwpck_require__(2186);
 function run({ token, owner, repo, pullNumber, }) {
     return __awaiter(this, void 0, void 0, function* () {
         const githubService = new githubApi_1.GithubApi({
@@ -9766,7 +9766,7 @@ function run({ token, owner, repo, pullNumber, }) {
     const event = JSON.parse(fs_1.default.readFileSync(githubEventPath, "utf8"));
     const pullRequestNumber = event.pull_request.number;
     (0, invariant_1.default)(typeof pullRequestNumber === "number", "pull_request.number is not defined");
-    const token = core_1.default.getInput("github-token", { required: true });
+    const token = (0, core_1.getInput)("github-token", { required: true });
     const [owner, repo] = repository.split("/");
     console.log({
         owner,
